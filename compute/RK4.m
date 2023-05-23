@@ -4,6 +4,7 @@ y = zeros(1,1001);  %速度
 z = zeros(1,1001);  %质量
 t = zeros(1,1001); %时间
 m = zeros(1,1001);
+
 %初始值
 i=2;
 m(1)=9;
@@ -16,9 +17,12 @@ g0   = 9.8;         %初始重力加速度
 r0   = 6371000;     %地球半径
 T0   = 7600000;     %单个发动机最大推力
 Isp  = 342;         %比冲
+
+%方程组
 f1   = @(x, y, z, t)(y); %方程1
 f2   = @(x, y, z, t)(-1*g0*(r0/(r0+x))^2 +num(t)*T0/z + fk(y)*y*abs(y)/z);%方程2
 f3   = @(x, y, z, t)(-1*num(t)*T0/(Isp*g0));%方程3
+
 %迭代更新
 for  i = 2 : 1001
     t(i) = roundn((t(i-1) + h),-1);%更新时间
@@ -43,32 +47,34 @@ for  i = 2 : 1001
     y(i) = y(i-1)+h*(1/6*k21 +1/3*k22+1/3*k23+1/6*k24);%更新速度
     z(i) = z(i-1)+h*(1/6*k31 +1/3*k32+1/3*k33+1/6*k34);%更新质量        
 end
+%画图
  figure(1);
  plot(t,x);
- xlabel('t'), ylabel('r','FontName','Times New Roman','FontSize',14,'Rotation',0);
- title('f(t, r)曲线');
+ xlabel('t'), ylabel('r/m','FontName','Times New Roman','FontSize',14,'Rotation',0);
+ title('时间-高度曲线');
  figure(2);
  plot(t,y);
  xlabel('t'), ylabel('v/(m/s)','FontName','Times New Roman','FontSize',14,'Rotation',0);
- title('f(t, v)曲线');
+ title('时间-速度曲线');
  figure(3);
  plot(t,z);
  xlabel('t'), ylabel('m/(kg)','FontName','Times New Roman','FontSize',14,'Rotation',0);
- title('f(t, m)曲线');
+ title('时间-质量曲线');
 
-function n = num(t1)
+%n的分段函数
+function [n] = num(t1)
     if t1 < 7.4
         n = 9;
     elseif ((t1>=68.0) &&(t1<69.4))||((t1>=73.4) && (t1<74.0))
         n = 2;
     elseif (t1>=74.6) && (t1<74.9)
-        n=1; 
+        n = 1; 
     else
         n = 0;
     end
 end
 
-
+%一维插值法求k(大于5000的用常数代替
 function [k1] = fk(y)
   vx=[0 500 2000 5000];
   k=[1e-5 1.5e-5 1.8e-5 2e-5];
@@ -78,7 +84,3 @@ function [k1] = fk(y)
       k1=interp1(vx,k,-y);
   end
 end
-
-
-
-
